@@ -40,6 +40,7 @@ namespace RebootIT.TimesheetApp.Controllers
                 .Include(t => t.Location)
                 .Include(t => t.Staff)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (timesheet == null)
             {
                 return NotFound();
