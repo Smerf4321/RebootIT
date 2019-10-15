@@ -11,6 +11,7 @@ namespace RebootIT.TimesheetApp.Controllers
 {
     public class TimesheetsController : Controller
     {
+        static public int CurrentId = 0;
         private readonly TimesheetDbContext _context;
 
         public TimesheetsController(TimesheetDbContext context)
@@ -29,6 +30,7 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Staff Timesheets
         public async Task<IActionResult> StaffIndex(int staffId)
         {
+            CurrentId = staffId;
             var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.StaffId == staffId);
 
             return View("Index", await timesheetDbContext.ToListAsync());
@@ -37,6 +39,7 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Client Timesheets
         public async Task<IActionResult> ClientIndex(int clientId)
         {
+            CurrentId = clientId;
             var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.ClientId == clientId);
 
             return View("Index", await timesheetDbContext.ToListAsync());
@@ -45,6 +48,7 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Client Timesheets
         public async Task<IActionResult> LocationIndex(int locationId)
         {
+            CurrentId = locationId;
             var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.LocationId == locationId);
 
             return View("Index", await timesheetDbContext.ToListAsync());
@@ -77,7 +81,16 @@ namespace RebootIT.TimesheetApp.Controllers
         {
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "CompanyName");
             ViewData["LocationId"] = new SelectList(_context.Locations, "Id", "Name");
-            ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email");
+
+            if (CurrentId == 0)
+            {
+                ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email");
+            }
+            else
+            {
+                ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email", CurrentId);
+            }
+
             return View();
         }
 
@@ -94,6 +107,7 @@ namespace RebootIT.TimesheetApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "CompanyName", timesheet.ClientId);
             ViewData["LocationId"] = new SelectList(_context.Locations, "Id", "Name", timesheet.LocationId);
             ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email", timesheet.StaffId);
