@@ -19,12 +19,35 @@ namespace RebootIT.TimesheetApp.Controllers
         }
 
         // GET: Timesheets
-        public async Task<IActionResult> Index(int? staffId)
+        public async Task<IActionResult> Index()
         {
-            var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff)
-                                            .Where(t => staffId == null || t.StaffId == staffId);
+            var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff);
 
             return View(await timesheetDbContext.ToListAsync());
+        }
+
+        // GET: Staff Timesheets
+        public async Task<IActionResult> StaffIndex(int staffId)
+        {
+            var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.StaffId == staffId);
+
+            return View("Index", await timesheetDbContext.ToListAsync());
+        }
+
+        // GET: Client Timesheets
+        public async Task<IActionResult> ClientIndex(int clientId)
+        {
+            var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.ClientId == clientId);
+
+            return View("Index", await timesheetDbContext.ToListAsync());
+        }
+
+        // GET: Client Timesheets
+        public async Task<IActionResult> LocationIndex(int locationId)
+        {
+            var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.LocationId == locationId);
+
+            return View("Index", await timesheetDbContext.ToListAsync());
         }
 
         // GET: Timesheets/Details/5
