@@ -11,7 +11,9 @@ namespace RebootIT.TimesheetApp.Controllers
 {
     public class TimesheetsController : Controller
     {
-        static public int CurrentId = 0;
+        static public int CurrentStaffId = 0;
+        static public int CurrentClientId = 0;
+        static public int CurrentLocationId = 0;
         private readonly TimesheetDbContext _context;
 
         public TimesheetsController(TimesheetDbContext context)
@@ -30,7 +32,7 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Staff Timesheets
         public async Task<IActionResult> StaffIndex(int staffId)
         {
-            CurrentId = staffId;
+            CurrentStaffId = staffId;
             var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.StaffId == staffId);
 
             return View("Index", await timesheetDbContext.ToListAsync());
@@ -39,7 +41,7 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Client Timesheets
         public async Task<IActionResult> ClientIndex(int clientId)
         {
-            CurrentId = clientId;
+            CurrentClientId = clientId;
             var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.ClientId == clientId);
 
             return View("Index", await timesheetDbContext.ToListAsync());
@@ -48,7 +50,7 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Client Timesheets
         public async Task<IActionResult> LocationIndex(int locationId)
         {
-            CurrentId = locationId;
+            CurrentLocationId = locationId;
             var timesheetDbContext = _context.Timesheets.Include(t => t.Client).Include(t => t.Location).Include(t => t.Staff).Where(t => t.LocationId == locationId);
 
             return View("Index", await timesheetDbContext.ToListAsync());
@@ -79,16 +81,31 @@ namespace RebootIT.TimesheetApp.Controllers
         // GET: Timesheets/Create
         public IActionResult Create()
         {
-            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "CompanyName");
-            ViewData["LocationId"] = new SelectList(_context.Locations, "Id", "Name");
+            if (CurrentClientId == 0)
+            {
+                ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "CompanyName");
+            }
+            else
+            {
+                ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "CompanyName", CurrentClientId);
+            }
+            
+            if (CurrentLocationId == 0)
+            {
+                ViewData["LocationId"] = new SelectList(_context.Locations, "Id", "Name");
+            }
+            else
+            {
+                ViewData["LocationId"] = new SelectList(_context.Locations, "Id", "Name", CurrentLocationId);
+            }
 
-            if (CurrentId == 0)
+            if (CurrentStaffId == 0)
             {
                 ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email");
             }
             else
             {
-                ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email", CurrentId);
+                ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email", CurrentStaffId);
             }
 
             return View();
@@ -129,7 +146,10 @@ namespace RebootIT.TimesheetApp.Controllers
             }
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "CompanyName", timesheet.ClientId);
             ViewData["LocationId"] = new SelectList(_context.Locations, "Id", "Name", timesheet.LocationId);
-            ViewData["StaffId"] = new SelectList(_context.Staff, "Id", "Email", timesheet.StaffId);
+
+            var staffList = _context.Staff.Select(s => new { Id = s.Id, FullName = s.Forename + " " + s.Surname } );
+
+            ViewData["StaffId"] = new SelectList(staffList, "Id", "FullName", timesheet.StaffId);
             return View(timesheet);
         }
 
